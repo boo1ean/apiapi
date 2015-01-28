@@ -37,8 +37,7 @@ github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }).then(console
 
 You can specify response parse function:
 
-```
-
+```js
 // Will parse all methods responses (global parse)
 
 new ApiClient({
