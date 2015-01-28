@@ -33,6 +33,41 @@ var github = new Apiclient({
 github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }).then(console.log);
 ```
 
+## Response parsers
+
+You can specify response parse function:
+
+```
+
+// Will parse all methods responses (global parse)
+
+new ApiClient({
+	// ...
+
+	parse: function parseResponse (res, body) {
+		// res - request's response object
+		// body = response body
+	}
+});
+
+// Parse response of specific method
+
+new ApiClient({
+	// ...
+
+	methods: {
+		issues: 'get /issues'
+	}
+
+	parse: {
+		issues: function parseIssues (res, body) {
+			return body.slice(0, 5);
+		}
+	}
+});
+
+```
+
 ...
 
 ## License

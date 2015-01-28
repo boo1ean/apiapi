@@ -11,9 +11,10 @@ function ApiClient (opts) {
 	this.request = request;
 	this.baseUrl = opts.baseUrl;
 	this.headers = opts.headers;
+	this.parse = opts.parse;
 
 	for (var methodName in opts.methods) {
-		this[methodName] = this._composeMethod(opts.methods[methodName]);
+		this[methodName] = this._composeMethod(opts.methods[methodName], methodName);
 	}
 
 	function assertOptions (opts) {
@@ -28,10 +29,14 @@ function ApiClient (opts) {
 		if (opts.headers && !_.isObject(opts.headers)) {
 			throw new Error('Headers must be object');
 		}
+
+		if (opts.parse && (!_.isObject(opts.parse) && !_.isFunction(opts.parse))) {
+			throw Error('Parse must be object or function');
+		}
 	}
 }
 
-ApiClient.prototype._composeMethod = function _composeMethod (config) {
+ApiClient.prototype._composeMethod = function _composeMethod (config, methodName) {
 	var requestOptions = this._getRequestOptions(config);
 	var self = this;
 
@@ -52,9 +57,7 @@ ApiClient.prototype._composeMethod = function _composeMethod (config) {
 			opts.body = getRequestBody(requestOptions.uriSchema, params);
 		}
 
-		return self.request(opts).spread(function (res, body) {
-			return body;
-		});
+		return self.request(opts).spread(self._getResponseParser(methodName));
 	}
 
 	function getUri (requestOptions, params) {
@@ -89,6 +92,21 @@ ApiClient.prototype._composeMethod = function _composeMethod (config) {
 	}
 }
 
+ApiClient.prototype._getResponseParser = function _getResponseParser (methodName) {
+	switch (true) {
+		case _.isFunction(this.parse):
+			return this.parse;
+		case _.isObject(this.parse) && _.isFunction(this.parse[methodName]):
+			return this.parse[methodName];
+		default:
+			return returnBody;
+	}
+
+	function returnBody (res, body) {
+		return body;
+	}
+}
+
 ApiClient.prototype._getRequestOptions = function _getRequestOptions (config) {
 	var configTokens = config.split(' ');
 
@@ -118,7 +136,8 @@ ApiClient.prototype._getRequestOptions = function _getRequestOptions (config) {
 		}
 
 		function extractPathParams (path) {
-			return path.match(/{([\s\S]+?)}/g).map(slice);
+			var matches = path.match(/{([\s\S]+?)}/g) || [];
+			return matches.map(slice);
 
 			function slice (param) {
 				return param.slice(1, -1);
