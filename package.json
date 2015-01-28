@@ -1,0 +1,35 @@
+{
+  "name": "apiapi",
+  "version": "0.1.0",
+  "description": "API wrapper for lazy devs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boo1ean/apiapi.git"
+  },
+  "keywords": [
+    "api",
+    "wrapper",
+    "client"
+  ],
+  "author": "Egor Gumenyuk <boo1ean0807@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/boo1ean/apiapi/issues"
+  },
+  "homepage": "https://github.com/boo1ean/apiapi",
+  "dependencies": {
+    "bluebird": "^2.9.3",
+    "lodash": "^3.0.0",
+    "request": "^2.51.0",
+    "shitty-qs": "^1.0.1"
+  },
+  "devDependencies": {
+    "mocha": "^2.1.0",
+    "should": "^4.6.1",
+    "sinon": "^1.12.2"
+  }
+}
