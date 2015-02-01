@@ -64,7 +64,7 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 		var uri = getPath(); 
 		var query = getQuery();
 
-		if (query && requestOptions.httpMethod === 'GET') {
+		if (query) {
 			return uri + '?' + query;
 		}
 
@@ -75,15 +75,19 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 		}
 
 		function getQuery () {
-			 return stringifyQuery(_.extend(requestOptions.uriSchema.query, _.omit(params, requestOptions.uriSchema.pathParams)));
+			if (requestOptions.httpMethod === 'GET') {
+				return stringifyQuery(_.extend(requestOptions.uriSchema.query, _.omit(params, requestOptions.uriSchema.pathParams)));
+			}
 
-			 function stringifyQuery (query) {
-			 	 return _.values(_.map(query, stringifyParam)).join('&');
+			return stringifyQuery(requestOptions.uriSchema.query);
 
-			 	 function stringifyParam (val, key) {
-					 return encodeURIComponent(key) + '=' + encodeURIComponent(val);
-				 }
-			 }
+			function stringifyQuery (query) {
+				return _.values(_.map(query, stringifyParam)).join('&');
+
+				function stringifyParam (val, key) {
+					return encodeURIComponent(key) + '=' + encodeURIComponent(val);
+				}
+			}
 		}
 	}
 
