@@ -4,6 +4,8 @@ var ApiClient = require('./');
 var Promise = require('bluebird');
 
 describe('ApiClient', function () {
+	var response = { statusCode: 200 };
+
 	var client = new ApiClient({
 		baseUrl: 'http://example.com',
 		methods: {
@@ -13,7 +15,7 @@ describe('ApiClient', function () {
 		},
 		parse: {
 			test3: function (res, body) {
-				res.should.be.equal('res');
+				res.should.be.equal(response);
 				body.should.be.equal('body');
 
 				return 'parsed body';
@@ -70,7 +72,7 @@ describe('ApiClient', function () {
 
 	it('Should return response body by default', function (done) {
 		client.request = function () {
-			return Promise.resolve(['res', 'body']);
+			return Promise.resolve([response, 'body']);
 		}
 
 		client.test2({ param: 1 }).then(function (body) {
@@ -89,7 +91,7 @@ describe('ApiClient', function () {
 
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
-			return Promise.resolve(['res', 'body']);
+			return Promise.resolve([response, 'body']);
 		}
 
 		client.test3({ to_parse: 42 }).then(function (result) {
@@ -103,7 +105,7 @@ describe('ApiClient', function () {
 			baseUrl: 'http://example.com',
 			methods: { m1: 'get /', m2: 'post /' },
 			parse: function (res, body) {
-				res.should.be.equal('res');
+				res.should.be.equal(response);
 				body.should.be.equal('body');
 
 				return 'result';
@@ -111,12 +113,27 @@ describe('ApiClient', function () {
 		});
 
 		client.request = function () {
-			return Promise.resolve(['res', 'body']);
+			return Promise.resolve([response, 'body']);
 		}
 
 		Promise.all([client.m1(), client.m2()]).spread(function (r1, r2) {
 			r1.should.be.equal('result');
 			r2.should.be.equal('result');
+			done();
+		});
+	});
+
+	it('Should throw error on non-200 status code', function (done) {
+		var client = new ApiClient({
+			baseUrl: 'http://example.com',
+			methods: { m1: 'get /' }
+		});
+
+		client.request = function () {
+			return Promise.resolve([{ statusCode: 500 }, 'body']);
+		}
+
+		client.m1().catch(function () {
 			done();
 		});
 	})

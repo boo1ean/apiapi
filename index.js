@@ -107,6 +107,10 @@ ApiClient.prototype._getResponseParser = function _getResponseParser (methodName
 	}
 
 	function returnBody (res, body) {
+		if (res.statusCode !== 200) {
+			throw new Error('Server response status: ' + res.statusCode);
+		}
+
 		return body;
 	}
 }

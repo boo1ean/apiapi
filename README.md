@@ -65,6 +65,8 @@ new ApiClient({
 	}
 });
 
+NOTE: if you use custom response parser you should manually check response status codes for errors
+
 ```
 
 ...
