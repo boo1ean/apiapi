@@ -33,7 +33,7 @@ var github = new Apiclient({
 github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }).then(console.log);
 ```
 
-## Response parsers
+## Response parser
 
 You can specify response parse function:
 
@@ -69,6 +69,38 @@ new ApiClient({
 
 NOTE: if you use custom response parser you should manually check response status codes for errors
 
+## Request params transformer
+
+You can decorate request params object with before hooks:
+
+```js
+var client = new ApiClient({
+	// ...
+
+	before: function parseResponse (params) {
+		if (prams.status === 'closed') {
+			params.expanded = 'true';
+		}
+
+		return params;
+	}
+});
+
+// will request https://api.github.com/repos/boo1ean/casual/issues?state=closed&expanded=true and return json data
+github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }).then(console.log);
+```
+
+Also you can perform method-specific before hook:
+
+```js
+new Apiclient({
+	before: {
+		issues: function (params) {
+			// ...
+		}
+	}
+});
+```
 ...
 
 ## License
