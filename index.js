@@ -12,6 +12,7 @@ function ApiClient (opts) {
 	this.baseUrl = opts.baseUrl;
 	this.headers = opts.headers;
 	this.parse = opts.parse;
+	this.before = opts.before;
 
 	for (var methodName in opts.methods) {
 		this[methodName] = this._composeMethod(opts.methods[methodName], methodName);
@@ -33,14 +34,19 @@ function ApiClient (opts) {
 		if (opts.parse && (!_.isObject(opts.parse) && !_.isFunction(opts.parse))) {
 			throw Error('Parse must be object or function');
 		}
+
+		if (opts.before && (!_.isObject(opts.before) && !_.isFunction(opts.before))) {
+			throw Error('Before must be object or function');
+		}
 	}
-}
+};
 
 ApiClient.prototype._composeMethod = function _composeMethod (config, methodName) {
 	var requestOptions = this._getRequestOptions(config);
 	var self = this;
 
 	return function apiMethod (params) {
+		params = self._getBeforeTransformer(methodName)(params);
 		requestOptions = _.clone(requestOptions);
 
 		var opts = {
@@ -94,7 +100,22 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 	function getRequestBody (uriSchema, params) {
 		return _.omit(params, uriSchema.pathParams);
 	}
-}
+};
+
+ApiClient.prototype._getBeforeTransformer = function _getBeforeTransformer (methodName) {
+	switch (true) {
+		case _.isFunction(this.before):
+			return this.before;
+		case _.isObject(this.before) && _.isFunction(this.before[methodName]):
+			return this.before[methodName];
+		default:
+			return returnSame;
+	}
+
+	function returnSame (params) {
+		return params;
+	}
+};
 
 ApiClient.prototype._getResponseParser = function _getResponseParser (methodName) {
 	switch (true) {
@@ -113,7 +134,7 @@ ApiClient.prototype._getResponseParser = function _getResponseParser (methodName
 
 		return body;
 	}
-}
+};
 
 ApiClient.prototype._getRequestOptions = function _getRequestOptions (config) {
 	var configTokens = config.split(' ');
@@ -152,6 +173,6 @@ ApiClient.prototype._getRequestOptions = function _getRequestOptions (config) {
 			}
 		}
 	}
-}
+};
 
 module.exports = ApiClient;

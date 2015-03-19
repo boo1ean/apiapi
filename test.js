@@ -11,7 +11,8 @@ describe('ApiClient', function () {
 		methods: {
 			test1: 'get /test1/{param1}/stuff/{param2}',
 			test2: 'post /test2/{param}',
-			test3: 'post /test3/haha'
+			test3: 'post /test3/haha',
+			test4: 'get /test4'
 		},
 		parse: {
 			test3: function (res, body) {
@@ -136,5 +137,45 @@ describe('ApiClient', function () {
 		client.m1().catch(function () {
 			done();
 		});
-	})
+	});
+
+	it('Should call before method before request', function (done) {
+		var client = new ApiClient({
+			baseUrl: 'http://example.com',
+			methods: { m1: 'get /' },
+			before: {
+				m1: function (params) {
+					return { a: 'b' };
+				}
+			},
+		});
+
+		client.request = function (opts) {
+			opts.url.should.be.equal('http://example.com/?a=b');
+			done();
+			return Promise.resolve([{ statusCode: 200 }, 'body']);
+		};
+
+		client.m1({ c: 1 });
+	});
+
+	it('Should call before method before request global', function (done) {
+		var client = new ApiClient({
+			baseUrl: 'http://example.com',
+			methods: { m1: 'get /', m2: 'get /' },
+			before: function (params) {
+				return { a: 'b' };
+			}
+		});
+
+		client.request = function (opts) {
+			opts.url.should.be.equal('http://example.com/?a=b');
+			return Promise.resolve([{ statusCode: 200 }, 'body']);
+		};
+
+		client.m1({ c: 1 });
+		client.m2({ c: 1 });
+
+		done();
+	});
 });
