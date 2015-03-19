@@ -77,7 +77,7 @@ You can decorate request params object with before hooks:
 var client = new ApiClient({
 	// ...
 
-	before: function parseResponse (params) {
+	before: function transformParams (params) {
 		if (prams.status === 'closed') {
 			params.expanded = 'true';
 		}
@@ -95,7 +95,7 @@ Also you can perform method-specific before hook:
 ```js
 new Apiclient({
 	before: {
-		issues: function (params) {
+		issues: function transformParams (params) {
 			// ...
 		}
 	}
