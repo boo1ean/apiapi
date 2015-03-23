@@ -15,7 +15,7 @@ Sample api client for github
 ```js
 var ApiClient = require('apiapi');
 
-var github = new Apiclient({
+var github = new ApiClient({
 	baseUrl: 'https://api.github.com',
 
 	// Define api methods
@@ -78,7 +78,7 @@ var client = new ApiClient({
 	// ...
 
 	before: function transformParams (params) {
-		if (prams.status === 'closed') {
+		if (params.state === 'closed') {
 			params.expanded = 'true';
 		}
 
@@ -93,7 +93,7 @@ github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }).then(console
 Also you can perform method-specific before hook:
 
 ```js
-new Apiclient({
+new ApiClient({
 	before: {
 		issues: function transformParams (params) {
 			// ...
