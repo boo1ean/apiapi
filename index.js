@@ -58,13 +58,14 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 			opts.headers = requestOptions.headers;
 		}
 
-		if (opts.method === 'POST') {
+		// Check on post/patch methods
+		if (['POST', 'PATCH'].indexOf(opts.method) > -1) {
 			opts.json = true;
 			opts.body = getRequestBody(requestOptions.uriSchema, params);
 		}
 
 		return self.request(opts).spread(self._getResponseParser(methodName));
-	}
+	};
 
 	function getUri (requestOptions, params) {
 		var uri = getPath(); 
