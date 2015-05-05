@@ -47,7 +47,6 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 
 	return function apiMethod (params) {
 		params = self._getBeforeTransformer(methodName)(params);
-		requestOptions = _.clone(requestOptions);
 
 		var opts = {
 			method: requestOptions.httpMethod,
