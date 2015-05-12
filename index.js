@@ -85,7 +85,7 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 				return stringifyQuery(_.extend(requestOptions.uriSchema.query, _.omit(params, requestOptions.uriSchema.pathParams)));
 			}
 
-			return stringifyQuery(requestOptions.uriSchema.query);
+			return stringifyQuery(_.extend(requestOptions.uriSchema.query, _.pick(params, requestOptions.uriSchema.queryParams)));
 
 			function stringifyQuery (query) {
 				return _.values(_.map(query, stringifyParam)).join('&');
@@ -160,11 +160,12 @@ ApiClient.prototype._getRequestOptions = function _getRequestOptions (config) {
 
 		return {
 			path: uriTokens[0],
-			pathParams: extractPathParams(uriTokens[0]),
-			query: uriTokens.length > 1 ? parseQuerString(uriTokens[1]) : {}
-		}
+			pathParams: extractParams(uriTokens[0]),
+			query: uriTokens.length > 1 ? parseQuerString(uriTokens[1]) : {},
+			queryParams: uriTokens.length > 1 ? extractParams(uriTokens[1]) : {}
+		};
 
-		function extractPathParams (path) {
+		function extractParams (path) {
 			var matches = path.match(/{([\s\S]+?)}/g) || [];
 			return matches.map(slice);
 

@@ -178,4 +178,44 @@ describe('ApiClient', function () {
 
 		done();
 	});
+
+	it('Should handle params in query string for non-get methods', function (done) {
+		var client = new ApiClient({
+			baseUrl: 'http://example.com',
+			methods: { m1: 'post /{p1}/{p2}?p3={p3}&p4={p4}'}
+		});
+
+		client.request = function (opts) {
+			opts.url.should.be.equal('http://example.com/a/b?p3=c&p4=d');
+			return Promise.resolve([{ statusCode: 200 }, 'body']);
+		};
+
+		client.m1({
+			p1: 'a',
+			p2: 'b',
+			p3: 'c',
+			p4: 'd'
+		});
+
+		done();
+	});
+
+	it('Should ignore placeholders in query string if no params passed', function (done) {
+		var client = new ApiClient({
+			baseUrl: 'http://example.com',
+			methods: { m1: 'post /{p1}/{p2}?p3={p3}&p4={p4}'}
+		});
+
+		client.request = function (opts) {
+			opts.url.should.be.equal('http://example.com/a/b?p3=%7Bp3%7D&p4=%7Bp4%7D');
+			return Promise.resolve([{ statusCode: 200 }, 'body']);
+		};
+
+		client.m1({
+			p1: 'a',
+			p2: 'b'
+		});
+
+		done();
+	});
 });
