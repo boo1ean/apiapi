@@ -31,6 +31,9 @@ var github = new ApiClient({
 
 // will request https://api.github.com/repos/boo1ean/casual/issues?state=closed and return json data
 github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }).then(console.log);
+
+// also you can use custom headers for each request
+github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }, {headers: { Authentication: "token GITHUB-TOKEN" }}).then(console.log);
 ```
 
 ## Response parser

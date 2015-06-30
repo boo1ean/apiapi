@@ -21,20 +21,26 @@ describe('ApiClient', function () {
 
 				return 'parsed body';
 			}
+		},
+		headers: {
+			'user-agent': 'User-agent header'
 		}
 	});
 
 	it('Should make get request to correct url', function (done) {
 		var expectedOpts = {
 			method: 'GET',
-			url: 'http://example.com/test1/1/stuff/2'
+			url: 'http://example.com/test1/1/stuff/2',
+			headers: {
+				'user-agent': 'User-agent header'
+			}
 		};
 
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
 			done();
 			return { spread: function () {} }
-		}
+		};
 
 		client.test1({ param1: 1, param2: 2 });
 	});
@@ -42,14 +48,17 @@ describe('ApiClient', function () {
 	it('It should prepare proper query string', function (done) {
 		var expectedOpts = {
 			method: 'GET',
-			url: 'http://example.com/test1/1/stuff/2?k=v&t=b'
+			url: 'http://example.com/test1/1/stuff/2?k=v&t=b',
+			headers: {
+				'user-agent': 'User-agent header'
+			}
 		};
 
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
 			done();
 			return { spread: function () {} }
-		}
+		};
 
 		client.test1({ param1: 1, param2: 2, k: 'v', t: 'b' });
 	});
@@ -59,22 +68,58 @@ describe('ApiClient', function () {
 			method: 'POST',
 			json: true,
 			url: 'http://example.com/test2/value',
-			body: { a: 1, b: 2 }
+			body: { a: 1, b: 2 },
+			headers: {
+				'user-agent': 'User-agent header'
+			}
 		};
 
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
 			done();
 			return { spread: function () {} }
-		}
+		};
 
 		client.test2({ param: 'value', a: 1, b: 2 });
+	});
+
+	it('Should make request with header passed to constructor', function (done) {
+		var expectedHeader = {'user-agent': 'User-agent header'};
+
+		client.request = function (opts) {
+			opts.headers.should.eql(expectedHeader);
+			done();
+			return { spread: function () {} }
+		};
+
+		client.test1({ param1: 1, param2: 2 });
+	});
+
+	it('Should make request with header passed to api method call', function (done) {
+		var requestParams = {
+			headers: {
+				'some-header': 'some header value'
+			}
+		};
+
+		var expectedHeader = {
+			'user-agent': 'User-agent header',
+			'some-header': 'some header value'
+		};
+
+		client.request = function (opts) {
+			opts.headers.should.eql(expectedHeader);
+			done();
+			return { spread: function () {} }
+		};
+
+		client.test1({ param1: 1, param2: 2 }, requestParams);
 	});
 
 	it('Should return response body by default', function (done) {
 		client.request = function () {
 			return Promise.resolve([response, 'body']);
-		}
+		};
 
 		client.test2({ param: 1 }).then(function (body) {
 			body.should.be.equal('body');
@@ -87,13 +132,16 @@ describe('ApiClient', function () {
 			method: 'POST',
 			json: true,
 			url: 'http://example.com/test3/haha',
-			body: { to_parse: 42 }
-		}
+			body: { to_parse: 42 },
+			headers: {
+				'user-agent': 'User-agent header'
+			}
+		};
 
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
 			return Promise.resolve([response, 'body']);
-		}
+		};
 
 		client.test3({ to_parse: 42 }).then(function (result) {
 			result.should.be.equal('parsed body');
@@ -115,7 +163,7 @@ describe('ApiClient', function () {
 
 		client.request = function () {
 			return Promise.resolve([response, 'body']);
-		}
+		};
 
 		Promise.all([client.m1(), client.m2()]).spread(function (r1, r2) {
 			r1.should.be.equal('result');
@@ -132,7 +180,7 @@ describe('ApiClient', function () {
 
 		client.request = function () {
 			return Promise.resolve([{ statusCode: 500 }, 'body']);
-		}
+		};
 
 		client.m1().catch(function () {
 			done();
@@ -147,7 +195,7 @@ describe('ApiClient', function () {
 				m1: function (params) {
 					return { a: 'b' };
 				}
-			},
+			}
 		});
 
 		client.request = function (opts) {
