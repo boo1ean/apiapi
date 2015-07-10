@@ -1,6 +1,6 @@
 {
   "name": "apiapi",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Quickly write up any json api client for your purpose",
   "main": "index.js",
   "scripts": {

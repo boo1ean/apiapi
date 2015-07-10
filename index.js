@@ -62,8 +62,8 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 			opts.headers = _.extend({}, opts.headers, params.headers);
 		}
 
-		// Check on post/patch methods
-		if (['POST', 'PATCH'].indexOf(opts.method) > -1) {
+		// Check on post/put/patch methods
+		if (['POST', 'PATCH', 'PUT'].indexOf(opts.method) > -1) {
 			opts.json = true;
 			opts.body = getRequestBody(requestOptions.uriSchema, requestParams);
 		}
