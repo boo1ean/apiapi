@@ -1,6 +1,6 @@
 {
   "name": "apiapi",
-  "version": "0.3.7",
+  "version": "0.4.0",
   "description": "Quickly write up any json api client for your purpose",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,7 @@
   "homepage": "https://github.com/boo1ean/apiapi",
   "dependencies": {
     "bluebird": "^2.9.3",
-    "lodash": "^3.0.0",
+    "lodash": "^3.10.1",
     "request": "^2.51.0",
     "shitty-qs": "^1.0.1"
   },

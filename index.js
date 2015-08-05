@@ -133,11 +133,11 @@ ApiClient.prototype._getResponseParser = function _getResponseParser (methodName
 	}
 
 	function returnBody (res, body) {
-		if (res.statusCode < 200 || res.statusCode > 299) {
-			throw new Error('Server response status: ' + res.statusCode);
+		if (_.inRange(res.statusCode, 200, 300) || _.inRange(res.statusCode, 400, 500)) {
+			return body;
 		}
 
-		return body;
+		throw new Error('Server response status: ' + res.statusCode);
 	}
 };
 
