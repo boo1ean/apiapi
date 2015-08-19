@@ -46,8 +46,10 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 	var self = this;
 
 	return function apiMethod (requestParams, params) {
+		requestParams = _.extend({}, requestParams);
 		params = _.extend({}, params);
-		requestParams = self._getBeforeTransformer(methodName)(requestParams);
+
+		self._getBeforeTransformer(methodName)(requestParams, params);
 
 		var opts = {
 			method: requestOptions.httpMethod,
@@ -62,9 +64,9 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 			opts.headers = _.extend({}, opts.headers, params.headers);
 		}
 
+		opts.json = true;
 		// Check on post/put/patch/delete methods
 		if (['POST', 'PATCH', 'PUT', 'DELETE'].indexOf(opts.method) > -1) {
-			opts.json = true;
 			opts.body = getRequestBody(requestOptions.uriSchema, requestParams);
 		}
 

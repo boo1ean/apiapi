@@ -74,18 +74,18 @@ NOTE: if you use custom response parser you should manually check response statu
 
 ## Request params transformer
 
-You can decorate request params object with before hooks:
+You can decorate request params and headers with before hooks:
 
 ```js
 var client = new ApiClient({
 	// ...
 
-	before: function transformParams (params) {
+	before: function transformParams (params, opts) {
 		if (params.state === 'closed') {
 			params.expanded = 'true';
 		}
 
-		return params;
+		opts.headers['some-custom-header'] = 'bip-bop';
 	}
 });
 
