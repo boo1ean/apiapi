@@ -31,6 +31,7 @@ describe('ApiClient', function () {
 		var expectedOpts = {
 			method: 'GET',
 			url: 'http://example.com/test1/1/stuff/2',
+			json: true,
 			headers: {
 				'user-agent': 'User-agent header'
 			}
@@ -49,6 +50,7 @@ describe('ApiClient', function () {
 		var expectedOpts = {
 			method: 'GET',
 			url: 'http://example.com/test1/1/stuff/2?k=v&t=b',
+			json: true,
 			headers: {
 				'user-agent': 'User-agent header'
 			}
@@ -193,7 +195,7 @@ describe('ApiClient', function () {
 			methods: { m1: 'get /' },
 			before: {
 				m1: function (params) {
-					return { a: 'b' };
+					params = { a: 'b' }
 				}
 			}
 		});
@@ -212,7 +214,8 @@ describe('ApiClient', function () {
 			baseUrl: 'http://example.com',
 			methods: { m1: 'get /', m2: 'get /' },
 			before: function (params) {
-				return { a: 'b' };
+				delete params.c;
+				params.a = 'b';
 			}
 		});
 

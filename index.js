@@ -45,29 +45,30 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 	var requestOptions = this._getRequestOptions(config);
 	var self = this;
 
-	return function apiMethod (requestParams, params) {
+	return function apiMethod (requestParams, additionalRequestOptions) {
 		requestParams = _.extend({}, requestParams);
-		params = _.extend({}, params);
+		additionalRequestOptions = _.extend({}, additionalRequestOptions);
+		requestBody = getRequestBody(requestOptions.uriSchema, requestParams);
 
-		self._getBeforeTransformer(methodName)(requestParams, params);
+		self._getBeforeTransformer(methodName)(requestParams, requestBody, additionalRequestOptions);
 
 		var opts = {
 			method: requestOptions.httpMethod,
-			url: requestOptions.baseUrl + getUri(requestOptions, requestParams)
+			url: requestOptions.baseUrl + getUri(requestOptions, requestParams),
+			json: true
 		};
 
 		if (requestOptions.headers) {
 			opts.headers = requestOptions.headers;
 		}
 
-		if (params.headers) {
-			opts.headers = _.extend({}, opts.headers, params.headers);
+		if (additionalRequestOptions.headers) {
+			opts.headers = _.extend({}, opts.headers, additionalRequestOptions.headers);
 		}
 
-		opts.json = true;
 		// Check on post/put/patch/delete methods
 		if (['POST', 'PATCH', 'PUT', 'DELETE'].indexOf(opts.method) > -1) {
-			opts.body = getRequestBody(requestOptions.uriSchema, requestParams);
+			opts.body = requestBody;
 		}
 
 		return self.request(opts).spread(self._getResponseParser(methodName));

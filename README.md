@@ -80,7 +80,10 @@ You can decorate request params and headers with before hooks:
 var client = new ApiClient({
 	// ...
 
-	before: function transformParams (params, opts) {
+	// params - object passed to method
+	// requestBody - object which will go to request body
+	// opts - additional request options (e.g. headers)
+	before: function transformParams (params, requestBody, opts) {
 		if (params.state === 'closed') {
 			params.expanded = 'true';
 		}
