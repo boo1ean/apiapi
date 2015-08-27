@@ -46,9 +46,10 @@ You can specify response parse function:
 new ApiClient({
 	// ...
 
-	parse: function parseResponse (res, body) {
+	parse: function parseResponse (res, body, requestParams) {
 		// res - request's response object
 		// body = response body
+		// requestParams = object passed to called method
 	}
 });
 
@@ -62,7 +63,7 @@ new ApiClient({
 	}
 
 	parse: {
-		issues: function parseIssues (res, body) {
+		issues: function parseIssues (res, body, requestParams) {
 			return body.slice(0, 5);
 		}
 	}

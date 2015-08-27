@@ -71,7 +71,9 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 			opts.body = requestBody;
 		}
 
-		return self.request(opts).spread(self._getResponseParser(methodName));
+		return self.request(opts).spread(function execResponseParser (res, body) {
+			return self._getResponseParser(methodName)(res, body, requestParams);
+		});
 	};
 
 	function getUri (requestOptions, params) {
