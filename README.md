@@ -1,6 +1,8 @@
 ## Api client for lazy devs
 
-Quickly write up any json api client for your purpose
+Quickly write up any json api client for your purpose.
+
+You can use both callbacks and promises for api client methods.
 
 ## Installation
 
@@ -34,6 +36,20 @@ github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }).then(console
 
 // also you can use custom headers for each request
 github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }, {headers: { Authentication: "token GITHUB-TOKEN" }}).then(console.log);
+```
+
+Call methods passing callbacks
+
+```javascript
+// Call method with params
+github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }, function (err, result) {
+	// process result
+});
+
+// Call method without params
+github.issues(function (err, result) {
+	// process result
+})
 ```
 
 ## Response parser

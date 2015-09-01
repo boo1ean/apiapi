@@ -195,7 +195,8 @@ describe('ApiClient', function () {
 			methods: { m1: 'get /' },
 			before: {
 				m1: function (params) {
-					params = { a: 'b' }
+					delete params.c;
+					params.a = 'b';
 				}
 			}
 		});
@@ -268,5 +269,42 @@ describe('ApiClient', function () {
 		});
 
 		done();
+	});
+
+	it('Should work with callbacks as well', function (done) {
+		var client = new ApiClient({
+			baseUrl: 'http://example.com',
+			methods: { m1: 'post /{a}'}
+		});
+
+
+		client.request = function (opts) {
+			opts.url.should.be.equal('http://example.com/b');
+			return Promise.resolve([{ statusCode: 200 }, 'body']);
+		};
+
+		client.m1({ a: 'b' }, function (err, body) {
+			(null === err).should.be.ok;
+			body.should.be.equal('body');
+			done();
+		});
+	});
+
+	it('Should handle errors with callbacks', function (done) {
+		var client = new ApiClient({
+			baseUrl: 'http://example.com',
+			methods: { m1: 'post /{a}'}
+		});
+
+
+		client.request = function (opts) {
+			opts.url.should.be.equal('http://example.com/b');
+			return Promise.reject({ statusCode: 500 });
+		};
+
+		client.m1({ a: 'b' }, function (err, body) {
+			err.statusCode.should.be.equal(500);
+			done();
+		});
 	});
 });
