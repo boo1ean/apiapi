@@ -13,6 +13,8 @@ function ApiClient (opts) {
 	this.headers = opts.headers;
 	this.parse = opts.parse;
 	this.before = opts.before;
+	this.query = opts.query || {};
+	this.body = opts.body || {};
 
 	for (var methodName in opts.methods) {
 		this[methodName] = this._composeMethod(opts.methods[methodName], methodName);
@@ -32,17 +34,25 @@ function ApiClient (opts) {
 		}
 
 		if (opts.parse && (!_.isObject(opts.parse) && !_.isFunction(opts.parse))) {
-			throw Error('Parse must be object or function');
+			throw new Error('Parse must be object or function');
 		}
 
 		if (opts.before && (!_.isObject(opts.before) && !_.isFunction(opts.before))) {
-			throw Error('Before must be object or function');
+			throw new Error('Before must be object or function');
+		}
+
+		if (opts.query && (!_.isObject(opts.query))) {
+			throw new Error('Query params pick options should be an object');
+		}
+
+		if (opts.body && (!_.isObject(opts.body))) {
+			throw new Error('Body params pick options should be an object');
 		}
 	}
 };
 
 ApiClient.prototype._composeMethod = function _composeMethod (config, methodName) {
-	var requestOptions = this._getRequestOptions(config);
+	var requestOptions = this._getRequestOptions(config, methodName);
 	var self = this;
 
 	return function apiMethod (requestParams, additionalRequestOptions, cb) {
@@ -63,7 +73,7 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 			additionalRequestOptions = _.extend({}, additionalRequestOptions);
 		}
 
-		requestBody = getRequestBody(requestOptions.uriSchema, requestParams);
+		requestBody = getRequestBody(requestOptions, requestParams);
 
 		self._getBeforeTransformer(methodName).call(self, requestParams, requestBody, additionalRequestOptions);
 
@@ -121,7 +131,18 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 
 		function getQuery () {
 			if (requestOptions.httpMethod === 'GET') {
-				return stringifyQuery(_.extend(requestOptions.uriSchema.query, _.omit(params, requestOptions.uriSchema.pathParams)));
+
+				// Filter out path params
+				var queryParams = _.omit(params, requestOptions.uriSchema.pathParams);
+
+				// Apply default query params
+				queryParams = _.defaults(queryParams, requestOptions.uriSchema.query);
+
+				if (_.isArray(requestOptions.queryParamsPick)) {
+					queryParams = _.pick(queryParams, requestOptions.queryParamsPick);
+				}
+
+				return stringifyQuery(queryParams);
 			}
 
 			return stringifyQuery(_.extend(requestOptions.uriSchema.query, _.pick(params, requestOptions.uriSchema.queryParams)));
@@ -136,8 +157,14 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 		}
 	}
 
-	function getRequestBody (uriSchema, params) {
-		return _.omit(params, uriSchema.pathParams);
+	function getRequestBody (requestOptions, params) {
+		var requestBody = _.omit(params, requestOptions.uriSchema.pathParams);
+
+		if (_.isArray(requestOptions.bodyParamsPick)) {
+			requestBody = _.pick(requestBody, requestOptions.bodyParamsPick);
+		}
+
+		return requestBody;
 	}
 };
 
@@ -175,7 +202,7 @@ ApiClient.prototype._getResponseParser = function _getResponseParser (methodName
 	}
 };
 
-ApiClient.prototype._getRequestOptions = function _getRequestOptions (config) {
+ApiClient.prototype._getRequestOptions = function _getRequestOptions (config, methodName) {
 	var configTokens = config.split(' ');
 
 	if (configTokens.length != 2) {
@@ -185,7 +212,9 @@ ApiClient.prototype._getRequestOptions = function _getRequestOptions (config) {
 	var requestOptions = {
 		baseUrl: this.baseUrl,
 		httpMethod: configTokens[0].toUpperCase(),
-		uriSchema: parseUri(configTokens[1])
+		uriSchema: parseUri(configTokens[1]),
+		queryParamsPick: this.query[methodName],
+		bodyParamsPick: this.body[methodName]
 	};
 
 	if (this.headers) {
