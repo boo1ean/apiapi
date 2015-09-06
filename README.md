@@ -126,6 +126,39 @@ new ApiClient({
 ```
 ...
 
+## Pick specific params for query string
+
+```javascript
+var client = new ApiClient({
+	methods: {
+		issues: 'get /repos/{user}/{repo}/issues'
+	},
+
+	query: {
+		// Will pick only these params for issues method and omit all others
+		issues: ['state']
+	}
+});
+
+// will request https://api.github.com/repos/boo1ean/casual/issues?state=closed
+client.issues({ custom: 'custom param', user: 'boo1ean', repo: 'casual', state: 'closed' });
+```
+
+## Pick specific params for request body
+
+```javascript
+var client = new ApiClient({
+	methods: {
+		createSomething: 'post /something'
+	},
+
+	body: {
+		// Only title will be picked from method params and passed to request body
+		createSomething: ['title']
+	}
+});
+```
+
 ## License
 
 MIT
