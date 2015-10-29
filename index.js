@@ -75,7 +75,8 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 
 		requestBody = getRequestBody(requestOptions, requestParams);
 
-		self._getBeforeTransformer(methodName).call(self, requestParams, requestBody, additionalRequestOptions);
+		var originalRequestParams = _.cloneDeep(requestParams);
+		requestParams = self._getBeforeTransformer(methodName).call(self, requestParams, requestBody, additionalRequestOptions);
 
 		var opts = {
 			method: requestOptions.httpMethod,
@@ -97,7 +98,7 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 		}
 
 		var resultPromise = self.request(opts).spread(function execResponseParser (res, body) {
-			return self._getResponseParser(methodName).call(self, res, body, requestParams);
+			return self._getResponseParser(methodName).call(self, res, body, originalRequestParams, requestParams);
 		});
 
 		if (_.isFunction(cb)) {
