@@ -4,7 +4,7 @@ var ApiClient = require('./');
 var Promise = require('bluebird');
 
 describe('ApiClient', function () {
-	var response = { statusCode: 200 };
+	var response = { status: 200, data: 'body' };
 
 	var client = new ApiClient({
 		baseUrl: 'http://example.com',
@@ -15,9 +15,9 @@ describe('ApiClient', function () {
 			test4: 'get /test4'
 		},
 		parse: {
-			test3: function (res, body) {
+			test3: function (res) {
 				res.should.be.equal(response);
-				body.should.be.equal('body');
+				res.data.should.be.equal('body');
 
 				return 'parsed body';
 			}
@@ -40,7 +40,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
 			done();
-			return { spread: function () {} }
+			return { then: function () {} }
 		};
 
 		client.test1({ param1: 1, param2: 2 });
@@ -59,7 +59,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
 			done();
-			return { spread: function () {} }
+			return { then: function () {} }
 		};
 
 		client.test1({ param1: 1, param2: 2, k: 'v', t: 'b' });
@@ -79,7 +79,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
 			done();
-			return { spread: function () {} }
+			return { then: function () {} }
 		};
 
 		client.test2({ param: 'value', a: 1, b: 2 });
@@ -91,7 +91,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.headers.should.eql(expectedHeader);
 			done();
-			return { spread: function () {} }
+			return { then: function () {} }
 		};
 
 		client.test1({ param1: 1, param2: 2 });
@@ -112,7 +112,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.headers.should.eql(expectedHeader);
 			done();
-			return { spread: function () {} }
+			return { then: function () {} }
 		};
 
 		client.test1({ param1: 1, param2: 2 }, requestParams);
@@ -120,7 +120,7 @@ describe('ApiClient', function () {
 
 	it('Should return response body by default', function (done) {
 		client.request = function () {
-			return Promise.resolve([response, 'body']);
+			return Promise.resolve(response);
 		};
 
 		client.test2({ param: 1 }).then(function (body) {
@@ -142,7 +142,7 @@ describe('ApiClient', function () {
 
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
-			return Promise.resolve([response, 'body']);
+			return Promise.resolve(response);
 		};
 
 		client.test3({ to_parse: 42 }).then(function (result) {
@@ -155,16 +155,14 @@ describe('ApiClient', function () {
 		var client = new ApiClient({
 			baseUrl: 'http://example.com',
 			methods: { m1: 'get /', m2: 'post /' },
-			parse: function (res, body) {
+			parse: function (res) {
 				res.should.be.equal(response);
-				body.should.be.equal('body');
-
 				return 'result';
 			}
 		});
 
 		client.request = function () {
-			return Promise.resolve([response, 'body']);
+			return Promise.resolve(response);
 		};
 
 		Promise.all([client.m1(), client.m2()]).spread(function (r1, r2) {
@@ -181,7 +179,7 @@ describe('ApiClient', function () {
 		});
 
 		client.request = function () {
-			return Promise.resolve([{ statusCode: 500 }, 'body']);
+			return Promise.resolve([{ status: 500 }]);
 		};
 
 		client.m1().catch(function () {
@@ -194,8 +192,8 @@ describe('ApiClient', function () {
 			baseUrl: 'http://example.com',
 			methods: { m1: 'get /' },
 			before: {
-				m1: function (params) {
-					return { a: 'b' };
+				m1: function (params, body, opts) {
+					return [{a:'b'}, body, opts];
 				}
 			}
 		});
@@ -203,7 +201,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.url.should.be.equal('http://example.com/?a=b');
 			done();
-			return Promise.resolve([{ statusCode: 200 }, 'body']);
+			return Promise.resolve(response);
 		};
 
 		client.m1({ c: 1 });
@@ -213,14 +211,14 @@ describe('ApiClient', function () {
 		var client = new ApiClient({
 			baseUrl: 'http://example.com',
 			methods: { m1: 'get /', m2: 'get /' },
-			before: function (params) {
-				return { a: 'b' };
+			before: function (a, b, c) {
+				return [{a: 'b'}, b, c];
 			}
 		});
 
 		client.request = function (opts) {
 			opts.url.should.be.equal('http://example.com/?a=b');
-			return Promise.resolve([{ statusCode: 200 }, 'body']);
+			return Promise.resolve(response);
 		};
 
 		client.m1({ c: 1 });
@@ -237,7 +235,7 @@ describe('ApiClient', function () {
 
 		client.request = function (opts) {
 			opts.url.should.be.equal('http://example.com/a/b?p3=c&p4=d');
-			return Promise.resolve([{ statusCode: 200 }, 'body']);
+			return Promise.resolve(response);
 		};
 
 		client.m1({
@@ -258,7 +256,7 @@ describe('ApiClient', function () {
 
 		client.request = function (opts) {
 			opts.url.should.be.equal('http://example.com/a/b?p3=%7Bp3%7D&p4=%7Bp4%7D');
-			return Promise.resolve([{ statusCode: 200 }, 'body']);
+			return Promise.resolve(response);
 		};
 
 		client.m1({

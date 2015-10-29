@@ -1,6 +1,11 @@
+var Promise = require('bluebird');
 var request = require('axios');
 var _ = require('lodash');
 var parseQuerString = require('shitty-qs');
+
+if (!global.Promise) {
+	global.Promise = Promise;
+}
 
 _.templateSettings.interpolate = /{([\s\S]+?)}/g;
 
@@ -56,9 +61,17 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 
 	return function apiMethod (requestParams, additionalRequestOptions) {
 		requestParams = _.extend({}, requestParams);
-		additionalRequestOptions = _.extend({}, additionalRequestOptions);
 		requestBody = getRequestBody(requestOptions.uriSchema, requestParams);
-		requestParams = self._getBeforeTransformer(methodName).call(self, requestParams, requestBody, additionalRequestOptions);
+		additionalRequestOptions = _.extend({}, additionalRequestOptions);
+
+		var originalRequestParams = _.cloneDeep(requestParams);
+		var transformed = self._getBeforeTransformer(methodName).call(self, requestParams, requestBody, additionalRequestOptions);
+
+		if (_.isArray(transformed)) {
+			requestParams = transformed[0];
+			requestBody = transformed[1];
+			additionalRequestOptions = transformed[2];
+		}
 
 		var opts = {
 			method: requestOptions.httpMethod,
@@ -79,11 +92,9 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 			opts.data = requestBody;
 		}
 
-		var resultPromise = self.request(opts).spread(function execResponseParser (res, body) {
-			return self._getResponseParser(methodName).call(self, res, body, requestParams);
+		return self.request(opts).then(function execResponseParser (res) {
+			return self._getResponseParser(methodName).call(self, res, originalRequestParams, requestParams);
 		});
-
-		return resultPromise;
 	};
 
 	function getUri (requestOptions, params) {
@@ -164,12 +175,12 @@ ApiClient.prototype._getResponseParser = function _getResponseParser (methodName
 			return returnBody;
 	}
 
-	function returnBody (res, body) {
-		if (_.inRange(res.statusCode, 200, 300) || _.inRange(res.statusCode, 400, 500)) {
-			return body;
+	function returnBody (res) {
+		if (_.inRange(res.status, 200, 300) || _.inRange(res.status, 400, 500)) {
+			return res.data;
 		}
 
-		throw new Error('Server response status: ' + res.statusCode);
+		throw new Error('Server response status: ' + res.status);
 	}
 };
 
