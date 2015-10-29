@@ -91,12 +91,12 @@ NOTE: if you use custom response parser you should manually check response statu
 
 ## Request params transformer
 
-You can decorate request params and headers with before hooks:
+You can decorate request params and headers with before hooks.
+
+First way is to mutate input objects:
 
 ```js
 var client = new ApiClient({
-	// ...
-
 	// params - object passed to method
 	// requestBody - object which will go to request body
 	// opts - additional request options (e.g. headers)
@@ -111,6 +111,17 @@ var client = new ApiClient({
 
 // will request https://api.github.com/repos/boo1ean/casual/issues?state=closed&expanded=true and return json data
 github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }).then(console.log);
+```
+
+Second way is to return override from before transform:
+
+```javascript
+var client = new ApiClient({
+	before: function transformParams (params, requestBody, opts) {
+		// You can return overrides for given objects
+		return [params, requestBody, opts];
+	}
+});
 ```
 
 Also you can perform method-specific before hook:
