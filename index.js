@@ -61,7 +61,7 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 
 	return function apiMethod (requestParams, additionalRequestOptions) {
 		requestParams = _.extend({}, requestParams);
-		requestBody = getRequestBody(requestOptions.uriSchema, requestParams);
+		requestBody = getRequestBody(requestOptions, requestParams);
 		additionalRequestOptions = _.extend({}, additionalRequestOptions);
 
 		var originalRequestParams = _.cloneDeep(requestParams);
