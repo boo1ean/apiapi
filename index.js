@@ -1,5 +1,4 @@
-var Promise = require('bluebird');
-var request = Promise.promisify(require('request'));
+var request = require('axios');
 var _ = require('lodash');
 var parseQuerString = require('shitty-qs');
 
@@ -55,33 +54,16 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 	var requestOptions = this._getRequestOptions(config, methodName);
 	var self = this;
 
-	return function apiMethod (requestParams, additionalRequestOptions, cb) {
-
-		// if callback passed as first argument
-		if (_.isFunction(requestParams)) {
-			cb = requestParams;
-			requestParams = {};
-		} else {
-			requestParams = _.extend({}, requestParams);
-		}
-
-		// if callback passed as second argument
-		if (_.isFunction(additionalRequestOptions)) {
-			cb = additionalRequestOptions;
-			additionalRequestOptions = {};
-		} else {
-			additionalRequestOptions = _.extend({}, additionalRequestOptions);
-		}
-
-		requestBody = getRequestBody(requestOptions, requestParams);
-
-		var originalRequestParams = _.cloneDeep(requestParams);
+	return function apiMethod (requestParams, additionalRequestOptions) {
+		requestParams = _.extend({}, requestParams);
+		additionalRequestOptions = _.extend({}, additionalRequestOptions);
+		requestBody = getRequestBody(requestOptions.uriSchema, requestParams);
 		requestParams = self._getBeforeTransformer(methodName).call(self, requestParams, requestBody, additionalRequestOptions);
 
 		var opts = {
 			method: requestOptions.httpMethod,
 			url: requestOptions.baseUrl + getUri(requestOptions, requestParams),
-			json: true
+			responseType: 'json'
 		};
 
 		if (requestOptions.headers) {
@@ -94,26 +76,14 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 
 		// Check on post/put/patch/delete methods
 		if (['POST', 'PATCH', 'PUT', 'DELETE'].indexOf(opts.method) > -1) {
-			opts.body = requestBody;
+			opts.data = requestBody;
 		}
 
 		var resultPromise = self.request(opts).spread(function execResponseParser (res, body) {
-			return self._getResponseParser(methodName).call(self, res, body, originalRequestParams, requestParams);
+			return self._getResponseParser(methodName).call(self, res, body, requestParams);
 		});
 
-		if (_.isFunction(cb)) {
-			resultPromise
-				.then(applyCallback)
-				.catch(cb);
-		}
-
 		return resultPromise;
-
-		function applyCallback () {
-			var args = Array.prototype.slice.apply(arguments);
-			args.unshift(null);
-			cb.apply(null, args);
-		}
 	};
 
 	function getUri (requestOptions, params) {

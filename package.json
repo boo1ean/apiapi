@@ -22,9 +22,8 @@
   },
   "homepage": "https://github.com/boo1ean/apiapi",
   "dependencies": {
-    "bluebird": "^2.9.3",
+    "axios": "^0.7.0",
     "lodash": "^3.10.1",
-    "request": "^2.51.0",
     "shitty-qs": "^1.0.1"
   },
   "devDependencies": {

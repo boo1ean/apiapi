@@ -31,7 +31,7 @@ describe('ApiClient', function () {
 		var expectedOpts = {
 			method: 'GET',
 			url: 'http://example.com/test1/1/stuff/2',
-			json: true,
+			responseType: 'json',
 			headers: {
 				'user-agent': 'User-agent header'
 			}
@@ -50,7 +50,7 @@ describe('ApiClient', function () {
 		var expectedOpts = {
 			method: 'GET',
 			url: 'http://example.com/test1/1/stuff/2?k=v&t=b',
-			json: true,
+			responseType: 'json',
 			headers: {
 				'user-agent': 'User-agent header'
 			}
@@ -68,9 +68,9 @@ describe('ApiClient', function () {
 	it('It should prepare proper post request options', function (done) {
 		var expectedOpts = {
 			method: 'POST',
-			json: true,
+			responseType: 'json',
 			url: 'http://example.com/test2/value',
-			body: { a: 1, b: 2 },
+			data: { a: 1, b: 2 },
 			headers: {
 				'user-agent': 'User-agent header'
 			}
@@ -132,9 +132,9 @@ describe('ApiClient', function () {
 	it('It should parse response data', function (done) {
 		var expectedOpts = {
 			method: 'POST',
-			json: true,
+			responseType: 'json',
 			url: 'http://example.com/test3/haha',
-			body: { to_parse: 42 },
+			data: { to_parse: 42 },
 			headers: {
 				'user-agent': 'User-agent header'
 			}
@@ -195,8 +195,7 @@ describe('ApiClient', function () {
 			methods: { m1: 'get /' },
 			before: {
 				m1: function (params) {
-					delete params.c;
-					params.a = 'b';
+					return { a: 'b' };
 				}
 			}
 		});
@@ -215,8 +214,7 @@ describe('ApiClient', function () {
 			baseUrl: 'http://example.com',
 			methods: { m1: 'get /', m2: 'get /' },
 			before: function (params) {
-				delete params.c;
-				params.a = 'b';
+				return { a: 'b' };
 			}
 		});
 
@@ -269,42 +267,5 @@ describe('ApiClient', function () {
 		});
 
 		done();
-	});
-
-	it('Should work with callbacks as well', function (done) {
-		var client = new ApiClient({
-			baseUrl: 'http://example.com',
-			methods: { m1: 'post /{a}'}
-		});
-
-
-		client.request = function (opts) {
-			opts.url.should.be.equal('http://example.com/b');
-			return Promise.resolve([{ statusCode: 200 }, 'body']);
-		};
-
-		client.m1({ a: 'b' }, function (err, body) {
-			(null === err).should.be.ok;
-			body.should.be.equal('body');
-			done();
-		});
-	});
-
-	it('Should handle errors with callbacks', function (done) {
-		var client = new ApiClient({
-			baseUrl: 'http://example.com',
-			methods: { m1: 'post /{a}'}
-		});
-
-
-		client.request = function (opts) {
-			opts.url.should.be.equal('http://example.com/b');
-			return Promise.reject({ statusCode: 500 });
-		};
-
-		client.m1({ a: 'b' }, function (err, body) {
-			err.statusCode.should.be.equal(500);
-			done();
-		});
 	});
 });
