@@ -13,8 +13,8 @@ function ApiClient (opts) {
 	assertOptions(opts);
 
 	this.request = request;
-	this.baseUrl = opts.baseUrl;
-	this.headers = opts.headers;
+	this.baseUrl = opts.baseUrl || '';
+	this.headers = opts.headers || {};
 	this.parse = opts.parse;
 	this.before = opts.before;
 	this.query = opts.query || {};
