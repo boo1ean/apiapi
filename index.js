@@ -2,6 +2,7 @@ var Promise = require('bluebird');
 var request = require('axios');
 var _ = require('lodash');
 var parseQuerString = require('shitty-qs');
+var debug = require('debug')('apiapi');
 
 if (!global.Promise) {
 	global.Promise = Promise;
@@ -23,6 +24,8 @@ function ApiClient (opts) {
 	for (var methodName in opts.methods) {
 		this[methodName] = this._composeMethod(opts.methods[methodName], methodName);
 	}
+
+	debug('client is instantiated');
 
 	function assertOptions (opts) {
 		if (!opts.baseUrl) {
@@ -60,6 +63,8 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 	var self = this;
 
 	return function apiMethod (requestParams, additionalRequestOptions) {
+		debug('called method %s', methodName);
+
 		requestParams = _.extend({}, requestParams);
 		requestBody = getRequestBody(requestOptions, requestParams);
 		additionalRequestOptions = _.extend({}, additionalRequestOptions);
@@ -92,7 +97,9 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 			opts.data = requestBody;
 		}
 
+		debug('request started', opts);
 		return self.request(opts).then(function execResponseParser (res) {
+			debug('request finished', opts);
 			return self._getResponseParser(methodName).call(self, res, originalRequestParams, requestParams);
 		});
 	};

@@ -170,6 +170,16 @@ var client = new ApiClient({
 });
 ```
 
+## Debug
+
+To see debug output just run you script like this:
+
+```
+DEBUG=apiapi node script.js
+```
+
+Debug output is provided by [debug](https://github.com/visionmedia/debug)
+
 ## License
 
 MIT
