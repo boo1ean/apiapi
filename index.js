@@ -18,6 +18,7 @@ function ApiClient (opts) {
 	this.headers = opts.headers || {};
 	this.parse = opts.parse;
 	this.before = opts.before;
+	this.errorHandler = opts.errorHandler;
 	this.query = opts.query || {};
 	this.body = opts.body || {};
 
@@ -48,6 +49,10 @@ function ApiClient (opts) {
 			throw new Error('Before must be object or function');
 		}
 
+		if (opts.errorHandler && (!_.isObject(opts.errorHandler) && !_.isFunction(opts.errorHandler))) {
+			throw new Error('errorHandler must be object or function');
+		}
+
 		if (opts.query && (!_.isObject(opts.query))) {
 			throw new Error('Query params pick options should be an object');
 		}
@@ -60,6 +65,9 @@ function ApiClient (opts) {
 
 ApiClient.prototype._composeMethod = function _composeMethod (config, methodName) {
 	var requestOptions = this._getRequestOptions(config, methodName);
+	var errorHandler = this._getErrorHandler(methodName);
+	var responseParser = this._getResponseParser(methodName);
+	var transformRequest = this._getBeforeTransformer(methodName);
 	var self = this;
 
 	return function apiMethod (requestParams, additionalRequestOptions) {
@@ -70,7 +78,7 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 		additionalRequestOptions = _.extend({}, additionalRequestOptions);
 
 		var originalRequestParams = _.cloneDeep(requestParams);
-		var transformed = self._getBeforeTransformer(methodName).call(self, requestParams, requestBody, additionalRequestOptions);
+		var transformed = transformRequest.call(self, requestParams, requestBody, additionalRequestOptions);
 
 		if (_.isArray(transformed)) {
 			requestParams = transformed[0];
@@ -98,10 +106,16 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 		}
 
 		debug('request started', opts);
-		return self.request(opts).then(function execResponseParser (res) {
-			debug('request finished', opts);
-			return self._getResponseParser(methodName).call(self, res, originalRequestParams, requestParams);
+		var promise = self.request(opts).then(function execResponseParser (res) {
+			debug('request finished', { opts: opts, res: res });
+			return responseParser.call(self, res, originalRequestParams, requestParams);
 		});
+
+		if (errorHandler) {
+			promise = promise.catch(errorHandler);
+		}
+
+		return promise;
 	};
 
 	function getUri (requestOptions, params) {
@@ -188,6 +202,17 @@ ApiClient.prototype._getResponseParser = function _getResponseParser (methodName
 		}
 
 		throw new Error('Server response status: ' + res.status);
+	}
+};
+
+ApiClient.prototype._getErrorHandler = function _getErrorHandler (methodName) {
+	switch (true) {
+		case _.isFunction(this.errorHandler):
+			return this.errorHandler;
+		case _.isObject(this.errorHandler) && _.isFunction(this.errorHandler[methodName]):
+			return this.errorHandler[methodName];
+		default:
+			return null;
 	}
 };
 
