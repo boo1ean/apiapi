@@ -93,32 +93,14 @@ NOTE: if you use custom response parser you should manually check response statu
 
 You can decorate request params and headers with before hooks.
 
-First way is to mutate input objects:
-
-```js
-var client = new ApiClient({
-	// params - object passed to method
-	// requestBody - object which will go to request body
-	// opts - additional request options (e.g. headers)
-	before: function transformParams (params, requestBody, opts) {
-		if (params.state === 'closed') {
-			params.expanded = 'true';
-		}
-
-		opts.headers['some-custom-header'] = 'bip-bop';
-	}
-});
-
-// will request https://api.github.com/repos/boo1ean/casual/issues?state=closed&expanded=true and return json data
-github.issues({ user: 'boo1ean', repo: 'casual', state: 'closed' }).then(console.log);
-```
-
-Second way is to return override from before transform:
-
 ```javascript
+// params - object passed to method
+// requestBody - object which will go to request body
+// opts - additional request options (e.g. headers)
 var client = new ApiClient({
 	before: function transformParams (params, requestBody, opts) {
 		// You can return overrides for given objects
+		opts.headers = { 'x-some-header': 'header-value' };
 		return [params, requestBody, opts];
 	}
 });
@@ -166,6 +148,30 @@ var client = new ApiClient({
 	body: {
 		// Only title will be picked from method params and passed to request body
 		createSomething: ['title']
+	}
+});
+```
+
+## Set error handler
+
+Global error handler
+
+```javascript
+var client = new ApiClient({
+	errorHandler: function errorHandler (result) {
+		console.log('API error response status code %s', result.status);
+	}
+});
+```
+
+method-specific error handlers:
+
+```javascript
+var client = new ApiClient({
+	errorHandler: {
+		getIssues: function handleGetIssuesError(res) {
+			console.log('Get issues error response status code %s', result.status);
+		}
 	}
 });
 ```
