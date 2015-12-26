@@ -1,6 +1,6 @@
 {
   "name": "apiapi",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Create api clients for node and browser with ease",
   "main": "index.js",
   "scripts": {
