@@ -79,6 +79,8 @@ ApiClient.prototype.assertParams = function assertParams (params, methodName) {
 		return;
 	}
 
+	this.assert(typeof params === 'object', 'method params must be valid object with fields: ' + this.required[methodName].join(', '));
+
 	_.forEach(this.required[methodName], function assertParam (param) {
 		this.assert(!_.isUndefined(params[param]), param + ' param is required');
 	}, this);
