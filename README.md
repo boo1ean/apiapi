@@ -183,7 +183,7 @@ You can declare list of required params for methods
 ```javascript
 var client = new ApiClient({
 	methods: {
-		createIssue: 'post /issues
+		createIssue: 'post /issues'
 	},
 
 	required: {
