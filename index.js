@@ -71,51 +71,53 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 	var self = this;
 
 	return function apiMethod (requestParams, additionalRequestOptions) {
-		debug('called method %s', methodName);
+		return new Promise(function exec (resolve, reject) {
+			debug('called method %s', methodName);
 
-		requestParams = _.extend({}, requestParams);
-		requestBody = getRequestBody(requestOptions, requestParams);
-		additionalRequestOptions = _.extend({}, additionalRequestOptions);
+			requestParams = _.extend({}, requestParams);
+			requestBody = getRequestBody(requestOptions, requestParams);
+			additionalRequestOptions = _.extend({}, additionalRequestOptions);
 
-		var originalRequestParams = _.cloneDeep(requestParams);
-		var transformed = transformRequest.call(self, requestParams, requestBody, additionalRequestOptions);
+			var originalRequestParams = _.cloneDeep(requestParams);
+			var transformed = transformRequest.call(self, requestParams, requestBody, additionalRequestOptions);
 
-		if (_.isArray(transformed)) {
-			requestParams = transformed[0];
-			requestBody = transformed[1];
-			additionalRequestOptions = transformed[2];
-		}
+			if (_.isArray(transformed)) {
+				requestParams = transformed[0];
+				requestBody = transformed[1];
+				additionalRequestOptions = transformed[2];
+			}
 
-		var opts = {
-			method: requestOptions.httpMethod,
-			url: requestOptions.baseUrl + getUri(requestOptions, requestParams),
-			responseType: 'json'
-		};
+			var opts = {
+				method: requestOptions.httpMethod,
+				url: requestOptions.baseUrl + getUri(requestOptions, requestParams),
+				responseType: 'json'
+			};
 
-		if (requestOptions.headers) {
-			opts.headers = requestOptions.headers;
-		}
+			if (requestOptions.headers) {
+				opts.headers = requestOptions.headers;
+			}
 
-		if (additionalRequestOptions.headers) {
-			opts.headers = _.extend({}, opts.headers, additionalRequestOptions.headers);
-		}
+			if (additionalRequestOptions.headers) {
+				opts.headers = _.extend({}, opts.headers, additionalRequestOptions.headers);
+			}
 
-		// Check on post/put/patch/delete methods
-		if (['POST', 'PATCH', 'PUT', 'DELETE'].indexOf(opts.method) > -1) {
-			opts.data = requestBody;
-		}
+			// Check on post/put/patch/delete methods
+			if (['POST', 'PATCH', 'PUT', 'DELETE'].indexOf(opts.method) > -1) {
+				opts.data = requestBody;
+			}
 
-		debug('request started', opts);
-		var promise = self.request(opts).then(function execResponseParser (res) {
-			debug('request finished', { opts: opts, res: res });
-			return responseParser.call(self, res, originalRequestParams, requestParams);
+			debug('request started', opts);
+			var promise = self.request(opts).then(function execResponseParser (res) {
+				debug('request finished', { opts: opts, res: res });
+				return responseParser.call(self, res, originalRequestParams, requestParams);
+			});
+
+			if (errorHandler) {
+				promise = promise.catch(errorHandler);
+			}
+
+			return promise.then(resolve, reject);
 		});
-
-		if (errorHandler) {
-			promise = promise.catch(errorHandler);
-		}
-
-		return promise;
 	};
 
 	function getUri (requestOptions, params) {
@@ -197,11 +199,7 @@ ApiClient.prototype._getResponseParser = function _getResponseParser (methodName
 	}
 
 	function returnBody (res) {
-		if (_.inRange(res.status, 200, 300) || _.inRange(res.status, 400, 500)) {
-			return res.data;
-		}
-
-		throw new Error('Server response status: ' + res.status);
+		return res.data;
 	}
 };
 

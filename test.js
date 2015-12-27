@@ -40,7 +40,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
 			done();
-			return { then: function () {} }
+			return Promise.resolve({});
 		};
 
 		client.test1({ param1: 1, param2: 2 });
@@ -59,7 +59,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
 			done();
-			return { then: function () {} }
+			return Promise.resolve({});
 		};
 
 		client.test1({ param1: 1, param2: 2, k: 'v', t: 'b' });
@@ -79,7 +79,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.should.eql(expectedOpts);
 			done();
-			return { then: function () {} }
+			return Promise.resolve({});
 		};
 
 		client.test2({ param: 'value', a: 1, b: 2 });
@@ -91,7 +91,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.headers.should.eql(expectedHeader);
 			done();
-			return { then: function () {} }
+			return Promise.resolve({});
 		};
 
 		client.test1({ param1: 1, param2: 2 });
@@ -112,7 +112,7 @@ describe('ApiClient', function () {
 		client.request = function (opts) {
 			opts.headers.should.eql(expectedHeader);
 			done();
-			return { then: function () {} }
+			return Promise.resolve({});
 		};
 
 		client.test1({ param1: 1, param2: 2 }, requestParams);
@@ -179,7 +179,7 @@ describe('ApiClient', function () {
 		});
 
 		client.request = function () {
-			return Promise.resolve([{ status: 500 }]);
+			return Promise.reject();
 		};
 
 		client.m1().catch(function () {
