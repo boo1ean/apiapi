@@ -176,6 +176,25 @@ var client = new ApiClient({
 });
 ```
 
+## Params validation
+
+You can declare list of required params for methods
+
+```javascript
+var client = new ApiClient({
+	methods: {
+		createIssue: 'post /issues
+	},
+
+	required: {
+		createIssue: ['name', 'body', 'author_id']
+	}
+});
+
+// Automatically asserts params object for having required attrs
+client.createIssue({...});
+```
+
 ## Debug
 
 To see debug output just run you script like this:

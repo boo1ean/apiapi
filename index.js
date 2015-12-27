@@ -18,6 +18,7 @@ function ApiClient (opts) {
 	this.headers = opts.headers || {};
 	this.parse = opts.parse;
 	this.before = opts.before;
+	this.required = opts.required;
 	this.errorHandler = opts.errorHandler;
 	this.query = opts.query || {};
 	this.body = opts.body || {};
@@ -39,6 +40,10 @@ function ApiClient (opts) {
 
 		if (opts.headers && !_.isObject(opts.headers)) {
 			throw new Error('Headers must be object');
+		}
+
+		if (opts.required && !_.isObject(opts.required)) {
+			throw new Error('Required fields config must be object');
 		}
 
 		if (opts.parse && (!_.isObject(opts.parse) && !_.isFunction(opts.parse))) {
@@ -63,6 +68,22 @@ function ApiClient (opts) {
 	}
 };
 
+ApiClient.prototype.assert = function assert (cond, errorMessage) {
+	if (!cond) {
+		throw new Error(errorMessage);
+	}
+};
+
+ApiClient.prototype.assertParams = function assertParams (params, methodName) {
+	if (!this.required || !this.required[methodName]) {
+		return;
+	}
+
+	_.forEach(this.required[methodName], function assertParam (param) {
+		this.assert(!_.isUndefined(params[param]), param + ' param is required');
+	}, this);
+};
+
 ApiClient.prototype._composeMethod = function _composeMethod (config, methodName) {
 	var requestOptions = this._getRequestOptions(config, methodName);
 	var errorHandler = this._getErrorHandler(methodName);
@@ -73,6 +94,8 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 	return function apiMethod (requestParams, additionalRequestOptions) {
 		return new Promise(function exec (resolve, reject) {
 			debug('called method %s', methodName);
+
+			self.assertParams(requestParams, methodName);
 
 			requestParams = _.extend({}, requestParams);
 			requestBody = getRequestBody(requestOptions, requestParams);
