@@ -266,4 +266,19 @@ describe('ApiClient', function () {
 
 		done();
 	});
+
+	it('Should assert params', function (done) {
+		var client = new ApiClient({
+			baseUrl: 'http://example.com',
+			methods: { m1: 'post /{p1}/{p2}?p3={p3}&p4={p4}'},
+			required: {
+				m1: ['p1', 'p2']
+			}
+		});
+
+		client.m1({ p1: 1 }).catch(function (err) {
+			err.message.should.be.equal('p2 param is required');
+			done();
+		});
+	})
 });
