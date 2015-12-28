@@ -209,6 +209,10 @@ DEBUG=apiapi node script.js
 
 Debug output is provided by [debug](https://github.com/visionmedia/debug)
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md)
+
 ## License
 
 MIT
