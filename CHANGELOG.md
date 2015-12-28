@@ -1,3 +1,9 @@
+## 1.6.0 (29-12-2015)
+
+- Rename `before` option into `transformRequest`
+- Rename `parse` option into `transformResponse`
+- Add support for async request transformers
+
 ## 1.5.1 (28-12-2015)
 
 - Validate method params object for being object if required fields are set for method
