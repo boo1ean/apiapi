@@ -207,6 +207,28 @@ describe('ApiClient', function () {
 		client.m1({ c: 1 });
 	});
 
+	it('Should call async transformRequest method before request', function (done) {
+		var client = new ApiClient({
+			baseUrl: 'http://example.com',
+			methods: { m1: 'get /' },
+			transformRequest: {
+				m1: function (params, body, opts) {
+					return new Promise(function (res, rej) {
+						res([{a:'b'}, body, opts]);
+					});
+				}
+			}
+		});
+
+		client.request = function (opts) {
+			opts.url.should.be.equal('http://example.com/?a=b');
+			done();
+			return Promise.resolve(response);
+		};
+
+		client.m1({ c: 1 });
+	});
+
 	it('Should call transformRequest method before request global', function (done) {
 		var client = new ApiClient({
 			baseUrl: 'http://example.com',
