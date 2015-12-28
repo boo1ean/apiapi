@@ -14,7 +14,7 @@ describe('ApiClient', function () {
 			test3: 'post /test3/haha',
 			test4: 'get /test4'
 		},
-		parse: {
+		transformResponse: {
 			test3: function (res) {
 				res.should.be.equal(response);
 				res.data.should.be.equal('body');
@@ -129,7 +129,7 @@ describe('ApiClient', function () {
 		});
 	});
 
-	it('It should parse response data', function (done) {
+	it('It should transformResponse response data', function (done) {
 		var expectedOpts = {
 			method: 'POST',
 			responseType: 'json',
@@ -151,11 +151,11 @@ describe('ApiClient', function () {
 		});
 	});
 
-	it('Should use global parse function', function (done) {
+	it('Should use global transformResponse function', function (done) {
 		var client = new ApiClient({
 			baseUrl: 'http://example.com',
 			methods: { m1: 'get /', m2: 'post /' },
-			parse: function (res) {
+			transformResponse: function (res) {
 				res.should.be.equal(response);
 				return 'result';
 			}
@@ -187,11 +187,11 @@ describe('ApiClient', function () {
 		});
 	});
 
-	it('Should call before method before request', function (done) {
+	it('Should call transformRequest method before request', function (done) {
 		var client = new ApiClient({
 			baseUrl: 'http://example.com',
 			methods: { m1: 'get /' },
-			before: {
+			transformRequest: {
 				m1: function (params, body, opts) {
 					return [{a:'b'}, body, opts];
 				}
@@ -207,11 +207,11 @@ describe('ApiClient', function () {
 		client.m1({ c: 1 });
 	});
 
-	it('Should call before method before request global', function (done) {
+	it('Should call transformRequest method before request global', function (done) {
 		var client = new ApiClient({
 			baseUrl: 'http://example.com',
 			methods: { m1: 'get /', m2: 'get /' },
-			before: function (a, b, c) {
+			transformRequest: function (a, b, c) {
 				return [{a: 'b'}, b, c];
 			}
 		});

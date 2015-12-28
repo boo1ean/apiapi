@@ -16,8 +16,8 @@ function ApiClient (opts) {
 	this.request = request;
 	this.baseUrl = opts.baseUrl || '';
 	this.headers = opts.headers || {};
-	this.parse = opts.parse;
-	this.before = opts.before;
+	this.transformResponse = opts.transformResponse;
+	this.transformRequest = opts.transformRequest;
 	this.required = opts.required;
 	this.errorHandler = opts.errorHandler;
 	this.query = opts.query || {};
@@ -46,12 +46,12 @@ function ApiClient (opts) {
 			throw new Error('Required fields config must be object');
 		}
 
-		if (opts.parse && (!_.isObject(opts.parse) && !_.isFunction(opts.parse))) {
-			throw new Error('Parse must be object or function');
+		if (opts.transformResponse && (!_.isObject(opts.transformResponse) && !_.isFunction(opts.transformResponse))) {
+			throw new Error('transformResponse must be object or function');
 		}
 
-		if (opts.before && (!_.isObject(opts.before) && !_.isFunction(opts.before))) {
-			throw new Error('Before must be object or function');
+		if (opts.transformRequest && (!_.isObject(opts.transformRequest) && !_.isFunction(opts.transformRequest))) {
+			throw new Error('transformRequest must be object or function');
 		}
 
 		if (opts.errorHandler && (!_.isObject(opts.errorHandler) && !_.isFunction(opts.errorHandler))) {
@@ -89,8 +89,8 @@ ApiClient.prototype.assertParams = function assertParams (params, methodName) {
 ApiClient.prototype._composeMethod = function _composeMethod (config, methodName) {
 	var requestOptions = this._getRequestOptions(config, methodName);
 	var errorHandler = this._getErrorHandler(methodName);
-	var responseParser = this._getResponseParser(methodName);
-	var transformRequest = this._getBeforeTransformer(methodName);
+	var transformResponse = this._getResponseTransformer(methodName);
+	var transformRequest = this._getRequestTransformer(methodName);
 	var self = this;
 
 	return function apiMethod (requestParams, additionalRequestOptions) {
@@ -104,44 +104,44 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 			additionalRequestOptions = _.extend({}, additionalRequestOptions);
 
 			var originalRequestParams = _.cloneDeep(requestParams);
-			var transformed = transformRequest.call(self, requestParams, requestBody, additionalRequestOptions);
+			return Promise.resolve(transformRequest.call(self, requestParams, requestBody, additionalRequestOptions)).then(function (transformed) {
+				if (_.isArray(transformed)) {
+					requestParams = transformed[0];
+					requestBody = transformed[1];
+					additionalRequestOptions = transformed[2];
+				}
 
-			if (_.isArray(transformed)) {
-				requestParams = transformed[0];
-				requestBody = transformed[1];
-				additionalRequestOptions = transformed[2];
-			}
+				var opts = {
+					method: requestOptions.httpMethod,
+					url: requestOptions.baseUrl + getUri(requestOptions, requestParams),
+					responseType: 'json'
+				};
 
-			var opts = {
-				method: requestOptions.httpMethod,
-				url: requestOptions.baseUrl + getUri(requestOptions, requestParams),
-				responseType: 'json'
-			};
+				if (requestOptions.headers) {
+					opts.headers = requestOptions.headers;
+				}
 
-			if (requestOptions.headers) {
-				opts.headers = requestOptions.headers;
-			}
+				if (additionalRequestOptions.headers) {
+					opts.headers = _.extend({}, opts.headers, additionalRequestOptions.headers);
+				}
 
-			if (additionalRequestOptions.headers) {
-				opts.headers = _.extend({}, opts.headers, additionalRequestOptions.headers);
-			}
+				// Check on post/put/patch/delete methods
+				if (['POST', 'PATCH', 'PUT', 'DELETE'].indexOf(opts.method) > -1) {
+					opts.data = requestBody;
+				}
 
-			// Check on post/put/patch/delete methods
-			if (['POST', 'PATCH', 'PUT', 'DELETE'].indexOf(opts.method) > -1) {
-				opts.data = requestBody;
-			}
+				debug('request started', opts);
+				var promise = self.request(opts).then(function execResponseParser (res) {
+					debug('request finished', { opts: opts, res: res });
+					return transformResponse.call(self, res, originalRequestParams, requestParams);
+				});
 
-			debug('request started', opts);
-			var promise = self.request(opts).then(function execResponseParser (res) {
-				debug('request finished', { opts: opts, res: res });
-				return responseParser.call(self, res, originalRequestParams, requestParams);
+				if (errorHandler) {
+					promise = promise.catch(errorHandler);
+				}
+
+				return promise.then(resolve, reject);
 			});
-
-			if (errorHandler) {
-				promise = promise.catch(errorHandler);
-			}
-
-			return promise.then(resolve, reject);
 		});
 	};
 
@@ -198,12 +198,12 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 	}
 };
 
-ApiClient.prototype._getBeforeTransformer = function _getBeforeTransformer (methodName) {
+ApiClient.prototype._getRequestTransformer = function _getRequestTransformer (methodName) {
 	switch (true) {
-		case _.isFunction(this.before):
-			return this.before;
-		case _.isObject(this.before) && _.isFunction(this.before[methodName]):
-			return this.before[methodName];
+		case _.isFunction(this.transformRequest):
+			return this.transformRequest;
+		case _.isObject(this.transformRequest) && _.isFunction(this.transformRequest[methodName]):
+			return this.transformRequest[methodName];
 		default:
 			return returnSame;
 	}
@@ -213,12 +213,12 @@ ApiClient.prototype._getBeforeTransformer = function _getBeforeTransformer (meth
 	}
 };
 
-ApiClient.prototype._getResponseParser = function _getResponseParser (methodName) {
+ApiClient.prototype._getResponseTransformer = function _getResponseTransformer (methodName) {
 	switch (true) {
-		case _.isFunction(this.parse):
-			return this.parse;
-		case _.isObject(this.parse) && _.isFunction(this.parse[methodName]):
-			return this.parse[methodName];
+		case _.isFunction(this.transformResponse):
+			return this.transformResponse;
+		case _.isObject(this.transformResponse) && _.isFunction(this.transformResponse[methodName]):
+			return this.transformResponse[methodName];
 		default:
 			return returnBody;
 	}
