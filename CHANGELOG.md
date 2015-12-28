@@ -3,6 +3,7 @@
 - Rename `before` option into `transformRequest`
 - Rename `parse` option into `transformResponse`
 - Add support for async request transformers
+- Add `responseType` option
 
 ## 1.5.1 (28-12-2015)
 

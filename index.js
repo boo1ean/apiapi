@@ -20,6 +20,7 @@ function ApiClient (opts) {
 	this.transformRequest = opts.transformRequest;
 	this.required = opts.required;
 	this.errorHandler = opts.errorHandler;
+	this.responseType = opts.responseType;
 	this.query = opts.query || {};
 	this.body = opts.body || {};
 
@@ -114,7 +115,7 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 				var opts = {
 					method: requestOptions.httpMethod,
 					url: requestOptions.baseUrl + getUri(requestOptions, requestParams),
-					responseType: 'json'
+					responseType: additionalRequestOptions.responseType || self.responseType || 'json'
 				};
 
 				if (requestOptions.headers) {

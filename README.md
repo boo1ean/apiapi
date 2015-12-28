@@ -156,6 +156,17 @@ var client = new ApiClient({
 });
 ```
 
+## Response type
+
+By default response type is `json` but you can change it if you want to one of `arraybuffer`, `blob`, `document`, `json`, `text`.
+
+```javascript
+new ApiClient({
+	// ...
+	responseType: 'text'
+});
+```
+
 ## Set error handler
 
 Global error handler
