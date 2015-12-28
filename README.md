@@ -101,7 +101,7 @@ var client = new ApiClient({
 
 Also you can perform method-specific `transformRequest` hook:
 
-```js
+```javascript
 new ApiClient({
 	transformRequest: {
 		issues: function transformParams (params) {
@@ -110,7 +110,18 @@ new ApiClient({
 	}
 });
 ```
-...
+
+If you want to create async request transformer, just return a promise
+
+```javascript
+new ApiClient({
+	transformRequest: {
+		issues: function transformParams (params) {
+			return new Promise(...);
+		}
+	}
+});
+```
 
 ## Pick specific params for query string
 
