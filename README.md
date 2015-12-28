@@ -52,33 +52,28 @@ github.issues(function (err, result) {
 })
 ```
 
-## Response parser
+## Transform response
 
-You can specify response parse function:
+You can specify response transform function:
 
 ```js
-// Will parse all methods responses (global parse)
-
+// Will transform all methods responses (global transform)
 new ApiClient({
 	// ...
-
-	parse: function parseResponse (res, body, requestParams) {
+	transformResponse: function transformResponse (res, body, requestParams) {
 		// res - request's response object
 		// body = response body
 		// requestParams = object passed to called method
 	}
 });
 
-// Parse response of specific method
-
+// transform response of specific method
 new ApiClient({
 	// ...
-
 	methods: {
 		issues: 'get /issues'
-	}
-
-	parse: {
+	},
+	transformResponse: {
 		issues: function parseIssues (res, body, requestParams) {
 			return body.slice(0, 5);
 		}
@@ -87,18 +82,16 @@ new ApiClient({
 
 ```
 
-NOTE: if you use custom response parser you should manually check response status codes for errors
+## Transform request
 
-## Request params transformer
-
-You can decorate request params and headers with before hooks.
+You can decorate request params and headers with `transformRequest` hooks.
 
 ```javascript
 // params - object passed to method
 // requestBody - object which will go to request body
 // opts - additional request options (e.g. headers)
 var client = new ApiClient({
-	before: function transformParams (params, requestBody, opts) {
+	transformRequest: function transformRequest (params, requestBody, opts) {
 		// You can return overrides for given objects
 		opts.headers = { 'x-some-header': 'header-value' };
 		return [params, requestBody, opts];
@@ -106,11 +99,11 @@ var client = new ApiClient({
 });
 ```
 
-Also you can perform method-specific before hook:
+Also you can perform method-specific `transformRequest` hook:
 
 ```js
 new ApiClient({
-	before: {
+	transformRequest: {
 		issues: function transformParams (params) {
 			// ...
 		}
