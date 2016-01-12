@@ -88,11 +88,11 @@ You can decorate request params and headers with `transformRequest` hooks.
 
 ```javascript
 // params - object passed to method
-// requestBody - object which will go to request body
+// requestBody - object which will be used as request body
 // opts - additional request options (e.g. headers)
 var client = new ApiClient({
 	transformRequest: function transformRequest (params, requestBody, opts) {
-		// You can return overrides for given objects
+		// You should return overrides for given objects
 		opts.headers = { 'x-some-header': 'header-value' };
 		return [params, requestBody, opts];
 	}
