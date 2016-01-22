@@ -100,11 +100,13 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 
 			self.assertParams(requestParams, methodName);
 
-			requestParams = _.extend({}, requestParams);
-			requestBody = getRequestBody(requestOptions, requestParams);
-			additionalRequestOptions = _.extend({}, additionalRequestOptions);
+			// Make sure arguments are immutable
+			requestParams = _.cloneDeep(requestParams) || {};
+			additionalRequestOptions = _.cloneDeep(additionalRequestOptions) || {};
 
+			var requestBody = getRequestBody(requestOptions, requestParams);
 			var originalRequestParams = _.cloneDeep(requestParams);
+
 			return Promise.resolve(transformRequest.call(self, requestParams, requestBody, additionalRequestOptions)).then(function (transformed) {
 				if (_.isArray(transformed)) {
 					requestParams = transformed[0];
