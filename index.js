@@ -144,7 +144,7 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 				}
 
 				return promise.then(resolve, reject);
-			});
+			}).catch(reject);
 		});
 	};
 
