@@ -21,6 +21,7 @@ function ApiClient (opts) {
 	this.required = opts.required;
 	this.errorHandler = opts.errorHandler;
 	this.responseType = opts.responseType;
+	this.rawResponse = opts.rawResponse;
 	this.query = opts.query || {};
 	this.body = opts.body || {};
 
@@ -131,6 +132,11 @@ ApiClient.prototype._composeMethod = function _composeMethod (config, methodName
 				// Check on post/put/patch/delete methods
 				if (['POST', 'PATCH', 'PUT', 'DELETE'].indexOf(opts.method) > -1) {
 					opts.data = requestBody;
+				}
+
+				// Handle raw response flag and remove axios response parser
+				if (self.rawResponse) {
+					opts.transformResponse = [];
 				}
 
 				debug('request started', opts);

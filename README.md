@@ -210,6 +210,17 @@ var client = new ApiClient({
 client.createIssue({...});
 ```
 
+## Raw response body
+
+By default response body is expected to be json and will be automatically parsed, to get raw body use flag:
+
+```javascript
+var client = new ApiClient({
+	// ...
+	rawResponse: true
+});
+```
+
 ## Debug
 
 To see debug output just run you script like this:
